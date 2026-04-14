@@ -32,30 +32,35 @@ function App() {
   // Initialize Data & Auth
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      const loadedData = await loadGameData();
-      
-      // Initialize Daily Missions if empty
-      if (!loadedData.dailyMissions || loadedData.dailyMissions.length === 0) {
-        loadedData.dailyMissions = generateDailyMissions(loadedData.user.level);
-      }
+      try {
+        const loadedData = await loadGameData();
+        
+        // Initialize Daily Missions if empty
+        if (!loadedData.dailyMissions || !Array.isArray(loadedData.dailyMissions) || loadedData.dailyMissions.length === 0) {
+          loadedData.dailyMissions = generateDailyMissions(loadedData.user.level);
+        }
 
-      // Check for daily reset
-      const today = new Date().toISOString().split('T')[0];
-      if (loadedData.user.lastWorkoutDate && loadedData.user.lastWorkoutDate.split('T')[0] !== today) {
-         if (loadedData.dailyMissions.every(m => m.completed)) {
-            loadedData.dailyMissions = generateDailyMissions(loadedData.user.level);
-         }
-      }
+        // Check for daily reset
+        const today = new Date().toISOString().split('T')[0];
+        if (loadedData.user.lastWorkoutDate && loadedData.user.lastWorkoutDate.split('T')[0] !== today) {
+           if (loadedData.dailyMissions.every(m => m.completed)) {
+              loadedData.dailyMissions = generateDailyMissions(loadedData.user.level);
+           }
+        }
 
-      // If logged in but no data, maybe it's a new cloud user
-      if (user && !loadedData.user.name) {
-        setView('ONBOARDING');
-      } else if (!user && !loadedData.user.name) {
-        setView('ONBOARDING');
-      }
+        // If logged in but no data, maybe it's a new cloud user
+        if (user && !loadedData.user.name) {
+          setView('ONBOARDING');
+        } else if (!user && !loadedData.user.name) {
+          setView('ONBOARDING');
+        }
 
-      setData(loadedData);
-      setIsAuthReady(true);
+        setData(loadedData);
+        setIsAuthReady(true);
+      } catch (error) {
+        console.error("Initialization error:", error);
+        setIsAuthReady(true); // Still set ready to show ErrorBoundary if it crashes later or handle here
+      }
     });
 
     return () => unsubscribe();
@@ -114,7 +119,8 @@ function App() {
     let xpEarned = Math.ceil((100 + (duration * 5)) * currentRank.multiplier);
     
     // Mission Progress
-    const updatedMissions = data.dailyMissions.map(mission => {
+    const missions = Array.isArray(data.dailyMissions) ? data.dailyMissions : [];
+    const updatedMissions = missions.map(mission => {
       if (mission.completed) return mission;
       
       let newValue = mission.currentValue;
@@ -334,7 +340,7 @@ function App() {
         <header className="lg:hidden h-16 border-b border-quest-border flex items-center px-4 justify-between bg-quest-bg/90 backdrop-blur sticky top-0 z-20">
           <span className="font-display font-bold text-white tracking-widest">IRON<span className="text-quest-primary">QUEST</span></span>
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-slate-300">
-            <Menu />
+            <Menu className="w-6 h-6" />
           </button>
         </header>
 

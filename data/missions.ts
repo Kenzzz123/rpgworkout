@@ -80,7 +80,7 @@ export const generateDailyMissions = (level: number): Mission[] => {
                                    template.type === 'XP_EARNED' ? 200 : 2) * scale);
 
     missions.push({
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
       ...template,
       targetValue,
       currentValue: 0,
