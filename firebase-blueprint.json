@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and game stats",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "level": { "type": "number" },
+        "currentXp": { "type": "number" },
+        "maxXp": { "type": "number" },
+        "streak": { "type": "number" },
+        "totalWorkouts": { "type": "number" },
+        "totalTimeMinutes": { "type": "number" },
+        "lastWorkoutDate": { "type": "string" },
+        "language": { "type": "string", "enum": ["en", "id"] }
+      },
+      "required": ["name", "level", "currentXp", "maxXp"]
+    },
+    "Exercise": {
+      "title": "Exercise",
+      "description": "A single exercise in a routine",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["REPS", "MINUTES"] },
+        "target": { "type": "number" },
+        "sets": { "type": "number" },
+        "description": { "type": "string" }
+      }
+    },
+    "WorkoutSession": {
+      "title": "WorkoutSession",
+      "description": "A completed workout session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "name": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "xpEarned": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile data"
+    },
+    "/users/{userId}/customRoutine/default": {
+      "schema": "object",
+      "description": "User's current workout routine"
+    },
+    "/users/{userId}/history/{sessionId}": {
+      "schema": "WorkoutSession",
+      "description": "User's workout history"
+    }
+  }
+}
