@@ -1,4 +1,5 @@
 export type ViewState = 
+  | 'LANDING'
   | 'ONBOARDING'
   | 'DASHBOARD' 
   | 'PROFILE' 

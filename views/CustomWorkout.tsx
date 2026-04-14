@@ -28,8 +28,10 @@ export const CustomWorkout: React.FC<CustomWorkoutProps> = ({ exercises, setExer
   const handleAddExercise = () => {
     if (!newExercise.name || !newExercise.target || !newExercise.sets) return;
 
+    const generateId = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11);
+
     const exercise: Exercise = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: newExercise.name,
       type: newExercise.type as ExerciseType,
       target: Number(newExercise.target),

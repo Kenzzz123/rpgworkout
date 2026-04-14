@@ -37,8 +37,10 @@ export const Coach: React.FC<CoachProps> = ({ user }) => {
   const handleSend = async (text: string = input) => {
     if (!text.trim()) return;
 
+    const generateId = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11);
+
     const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       role: 'user',
       text: text,
       timestamp: Date.now()
@@ -54,7 +56,7 @@ export const Coach: React.FC<CoachProps> = ({ user }) => {
       const responseText = await getCoachResponse(history, user);
       
       const botMsg: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: 'model',
         text: responseText,
         timestamp: Date.now()

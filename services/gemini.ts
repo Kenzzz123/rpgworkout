@@ -63,8 +63,10 @@ export const generateWorkoutPlan = async (
     const rawData = JSON.parse(response.text || "[]");
     
     // Map to internal Exercise interface with IDs
+    const generateId = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11);
+    
     return rawData.map((item: any) => ({
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: item.name,
       type: item.type,
       target: item.target,

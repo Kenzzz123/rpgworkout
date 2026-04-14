@@ -7,6 +7,7 @@ import { AIGenerator } from './views/AIGenerator';
 import { Coach } from './views/Coach';
 import { Profile } from './views/Profile';
 import { Onboarding } from './views/Onboarding';
+import { Landing } from './views/Landing';
 import { Card } from './components/Shared';
 import { 
   AppState, 
@@ -51,8 +52,10 @@ function App() {
         // If logged in but no data, maybe it's a new cloud user
         if (user && !loadedData.user.name) {
           setView('ONBOARDING');
-        } else if (!user && !loadedData.user.name) {
-          setView('ONBOARDING');
+        } else if (!user) {
+          setView('LANDING');
+        } else if (user && loadedData.user.name && view === 'LANDING') {
+          setView('DASHBOARD');
         }
 
         setData(loadedData);
@@ -87,7 +90,7 @@ function App() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setView('DASHBOARD');
+      setView('LANDING');
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -154,7 +157,7 @@ function App() {
     const newRank = getRankByLevel(newLevel);
 
     const session: WorkoutSession = {
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
       date: new Date().toISOString(),
       name: "Custom Protocol",
       exercises: data.customRoutine,
@@ -203,6 +206,10 @@ function App() {
     
     setView('DASHBOARD');
   };
+
+  if (view === 'LANDING') {
+    return <Landing onLogin={handleLogin} />;
+  }
 
   if (view === 'ONBOARDING') {
     return <Onboarding onComplete={handleOnboardingComplete} />;
