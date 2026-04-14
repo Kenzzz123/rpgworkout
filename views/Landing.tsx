@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../components/Shared';
 import { Shield, Zap, Trophy, Sword, Sparkles, LogIn } from 'lucide-react';
 
 interface LandingProps {
-  onLogin: () => void;
+  onLogin: (email?: string, password?: string, isSignUp?: boolean) => void;
+  isLoggingIn?: boolean;
+  loginError?: string | null;
 }
 
-export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
+export const Landing: React.FC<LandingProps> = ({ onLogin, isLoggingIn, loginError }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    onLogin(email, password, isSignUp);
+  };
   return (
     <div className="min-h-screen bg-black text-white selection:bg-quest-primary selection:text-black overflow-x-hidden">
       {/* Hero Section */}
@@ -31,16 +42,63 @@ export const Landing: React.FC<LandingProps> = ({ onLogin }) => {
             and build your character while building your body.
           </p>
 
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button 
-              onClick={onLogin}
-              className="group relative px-12 py-5 bg-quest-primary text-black font-display font-black text-xl rounded-2xl transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] active:scale-95"
-            >
-              <div className="flex items-center gap-3">
-                <Sword className="w-6 h-6 animate-pulse" />
-                START YOUR QUEST
+          <div className="pt-8 flex flex-col items-center justify-center gap-4 w-full max-w-md mx-auto">
+            <form onSubmit={handleSubmit} className="w-full space-y-4 bg-quest-card/50 p-6 rounded-2xl border border-quest-border backdrop-blur-sm">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1 text-left">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-black/50 border border-quest-border rounded-lg p-3 text-white focus:border-quest-primary outline-none transition-colors"
+                  placeholder="hero@ironquest.com"
+                  required
+                />
               </div>
-            </button>
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1 text-left">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-black/50 border border-quest-border rounded-lg p-3 text-white focus:border-quest-primary outline-none transition-colors"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <button 
+                type="submit"
+                disabled={isLoggingIn}
+                className={`w-full group relative px-8 py-4 bg-quest-primary text-black font-display font-black text-lg rounded-xl transition-all ${isLoggingIn ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] active:scale-95'}`}
+              >
+                <div className="flex items-center justify-center gap-3">
+                  {isLoggingIn ? (
+                    <div className="w-5 h-5 border-4 border-black border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Sword className="w-5 h-5 animate-pulse" />
+                  )}
+                  {isLoggingIn ? 'CONNECTING...' : (isSignUp ? 'CREATE CHARACTER' : 'ENTER REALM')}
+                </div>
+              </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="text-sm text-slate-400 hover:text-quest-primary transition-colors"
+                >
+                  {isSignUp ? 'Already have an account? Login' : 'New hero? Create an account'}
+                </button>
+              </div>
+            </form>
+            
+            {loginError && (
+              <div className="w-full p-4 bg-rose-900/50 border border-rose-500/50 rounded-xl text-rose-200 text-sm animate-fade-in text-center">
+                {loginError}
+              </div>
+            )}
           </div>
         </div>
 

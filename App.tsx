@@ -18,7 +18,7 @@ import {
 } from './types';
 import { loadGameData, saveGameData, saveWorkoutSession } from './services/storage';
 import { auth } from './firebase';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { Menu, Calendar as CalendarIcon, Trophy, LogIn, LogOut } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { generateDailyMissions } from './data/missions';
@@ -29,6 +29,8 @@ function App() {
   const [data, setData] = useState<AppState | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Initialize Data & Auth
   useEffect(() => {
@@ -78,12 +80,32 @@ function App() {
 
   if (!data || !isAuthReady) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-mono">INITIALIZING SYSTEM...</div>;
 
-  const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
+  const handleLogin = async (email?: string, password?: string, isSignUp?: boolean) => {
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
+    setLoginError(null);
+    
     try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Login failed", error);
+      if (email && password) {
+        if (isSignUp) {
+          await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+        }
+      }
+    } catch (error: any) {
+      console.error("Auth failed", error);
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        setLoginError("Email atau password salah.");
+      } else if (error.code === 'auth/email-already-in-use') {
+        setLoginError("Email ini sudah terdaftar. Silakan login.");
+      } else if (error.code === 'auth/weak-password') {
+        setLoginError("Password terlalu lemah (minimal 6 karakter).");
+      } else {
+        setLoginError(`Gagal masuk: ${error.message}`);
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -208,7 +230,7 @@ function App() {
   };
 
   if (view === 'LANDING') {
-    return <Landing onLogin={handleLogin} />;
+    return <Landing onLogin={handleLogin} isLoggingIn={isLoggingIn} loginError={loginError} />;
   }
 
   if (view === 'ONBOARDING') {

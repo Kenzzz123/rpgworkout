@@ -1,8 +1,16 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { Exercise, UserProfile } from "../types";
 
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini Client lazily to prevent crashes if API key is missing on load
+let aiClient: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (!aiClient) {
+    const key = process.env.API_KEY || process.env.GEMINI_API_KEY || 'missing_key';
+    aiClient = new GoogleGenAI({ apiKey: key });
+  }
+  return aiClient;
+};
 
 // Models
 const GENERATOR_MODEL = 'gemini-3-flash-preview';
@@ -51,6 +59,7 @@ export const generateWorkoutPlan = async (
   };
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: GENERATOR_MODEL,
       contents: prompt,
@@ -101,6 +110,7 @@ export const getCoachResponse = async (
   `;
 
   try {
+    const ai = getAI();
     const chat = ai.chats.create({
       model: COACH_MODEL,
       config: {
