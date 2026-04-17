@@ -6,7 +6,10 @@ let aiClient: GoogleGenAI | null = null;
 
 const getAI = () => {
   if (!aiClient) {
-    const key = process.env.API_KEY || process.env.GEMINI_API_KEY || 'missing_key';
+    const key = process.env.API_KEY || process.env.GEMINI_API_KEY;
+    if (!key || key === 'missing_key' || key === 'undefined') {
+      throw new Error("API_KEY_MISSING");
+    }
     aiClient = new GoogleGenAI({ apiKey: key });
   }
   return aiClient;
@@ -83,9 +86,12 @@ export const generateWorkoutPlan = async (
       description: item.description
     }));
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Workout Generation Error:", error);
-    throw new Error("Failed to generate workout plan.");
+    if (error.message === "API_KEY_MISSING") {
+      throw new Error("API Key Gemini belum diatur di hosting Anda. Silakan tambahkan GEMINI_API_KEY di environment variables hosting Anda.");
+    }
+    throw new Error(`Gagal membuat rencana latihan: ${error.message || 'Unknown error'}`);
   }
 };
 
@@ -143,8 +149,11 @@ export const getCoachResponse = async (
     const result = await activeChat.sendMessage({ message: lastMessage.text });
     return result.text || "I am meditating... ask again shortly.";
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Coach Error:", error);
-    return "The spirit realm is cloudy (API Error). Try again later.";
+    if (error.message === "API_KEY_MISSING") {
+      return "Sistem AI sedang offline. Anda perlu menambahkan GEMINI_API_KEY di pengaturan environment variables hosting Anda agar saya bisa berfungsi.";
+    }
+    return `Koneksi ke dunia roh sedang terganggu: ${error.message || 'Unknown API Error'}`;
   }
 };
